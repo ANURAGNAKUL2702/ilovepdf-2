@@ -16,3 +16,6 @@ pytest_cache/
 .coverage
 dist/
 build/
+
+# Ignore egg-info directories
+*.egg-info/
