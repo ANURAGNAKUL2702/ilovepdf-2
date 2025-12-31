@@ -42,7 +42,7 @@ export interface RenderOptions {
 }
 
 export interface PDFMetadata {
-  pageCount: number
+  pages: number
   pageWidth: number
   pageHeight: number
   title?: string
