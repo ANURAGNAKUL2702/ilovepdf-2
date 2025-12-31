@@ -178,13 +178,23 @@ export default function PDFEditor() {
       if (!pdfId) return
 
       try {
+        setIsLoading(true)
         console.log(`Rotating page ${pageNum} by ${degrees} degrees`)
-        // In production, this would call backend API
-        // await pdfAPI.rotatePage(pdfId, pageNum, degrees)
-        alert(`Page ${pageNum + 1} rotated by ${degrees}° (API integration pending)`)
+        
+        // Call backend API to rotate the page
+        await pdfAPI.rotatePage(pdfId, pageNum, degrees)
+        
+        // Reload the page to show the rotation
+        // In a real app, we'd refresh the PDF rendering
+        alert(`Page ${pageNum + 1} rotated by ${degrees}° successfully!`)
+        
+        // Optionally refresh the PDF view
+        window.location.reload()
       } catch (error) {
         console.error('Error rotating page:', error)
         alert('Failed to rotate page. Please try again.')
+      } finally {
+        setIsLoading(false)
       }
     },
     [pdfId]

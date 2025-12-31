@@ -96,21 +96,23 @@ def get_text_blocks(pdf_id):
         # Get text blocks for the specified page
         blocks = editor.get_text_blocks(page_number)
         
-        # Convert to frontend format
+        # Convert to frontend format (matching TextBlock interface)
         text_blocks = []
         for i, block in enumerate(blocks):
             text_blocks.append({
                 'id': f"{pdf_id}-{page_number}-{i}",
                 'text': block.text,
-                'x': block.x0,
-                'y': block.y0,
-                'width': block.x1 - block.x0,
-                'height': block.y1 - block.y0,
-                'page': block.page_number,
-                'font_name': getattr(block, 'font_name', 'Unknown'),
-                'font_size': getattr(block, 'font_size', 12),
-                'is_bold': getattr(block, 'is_bold', False),
-                'is_italic': getattr(block, 'is_italic', False)
+                'x0': block.x0,
+                'y0': block.y0,
+                'x1': block.x1,
+                'y1': block.y1,
+                'pageNumber': block.page_number,
+                'fontName': getattr(block, 'font_name', 'Helvetica'),
+                'fontSize': getattr(block, 'font_size', 12),
+                'fontFlags': getattr(block, 'font_flags', 0),
+                'color': getattr(block, 'color', '#000000'),
+                'lineNumber': getattr(block, 'line_number', 0),
+                'blockNumber': getattr(block, 'block_number', i)
             })
 
         return jsonify({'textBlocks': text_blocks})
@@ -156,23 +158,52 @@ def replace_text(pdf_id):
             return jsonify({'error': 'PDF not found'}), 404
 
         data = request.json
-        old_text = data.get('oldText')
+        block_id = data.get('blockId')
         new_text = data.get('newText')
-        page_number = data.get('page')
         preserve_style = data.get('preserveStyle', True)
 
-        if not old_text or not new_text:
-            return jsonify({'error': 'Old text and new text required'}), 400
+        if not block_id or new_text is None:
+            return jsonify({'error': 'Block ID and new text required'}), 400
 
-        # Create a temporary output file
+        # Parse block_id to get page and block index
+        # Format: "{pdf_id}-{page_number}-{block_index}"
+        parts = block_id.split('-')
+        if len(parts) < 3:
+            return jsonify({'error': 'Invalid block ID format'}), 400
+        
+        page_number = int(parts[-2])
+        block_index = int(parts[-1])
+        
+        # Get the current block to find old text
         session = pdf_sessions[pdf_id]
+        editor = session['editor']
+        blocks = editor.get_text_blocks(page_number)
+        
+        if block_index >= len(blocks):
+            return jsonify({'error': 'Block not found'}), 404
+        
+        old_block = blocks[block_index]
+        old_text = old_block.text
+        
+        # Create a temporary output file
         temp_output = os.path.join(UPLOAD_FOLDER, f"temp_{pdf_id}.pdf")
         
-        # Use the replace functionality (this would need to be implemented in your PDF editor)
-        # For now, just acknowledge the request
-        print(f"Replace '{old_text}' with '{new_text}' on page {page_number}")
-
-        return jsonify({'success': True, 'message': 'Text replacement queued'})
+        # Replace the text using the PDF editor
+        editor.replace_text(
+            output_path=temp_output,
+            old_text=old_text,
+            new_text=new_text,
+            preserve_style=preserve_style
+        )
+        
+        # Update the session with the new file
+        if os.path.exists(temp_output):
+            os.replace(temp_output, session['filepath'])
+            # Reload the editor
+            session['editor'] = PDFEditor(session['filepath'])
+            session['editor'].load()
+        
+        return jsonify({'success': True, 'message': 'Text replaced successfully'})
 
     except Exception as e:
         return jsonify({'error': f'Text replacement failed: {str(e)}'}), 500
@@ -188,9 +219,10 @@ def insert_text(pdf_id):
         text = data.get('text')
         x = data.get('x')
         y = data.get('y')
-        page_number = data.get('page', 0)
-        font_size = data.get('fontSize', 12)
-        font_name = data.get('fontName', 'helv')
+        page_number = data.get('pageNumber', 0)
+        options = data.get('options', {})
+        font_size = options.get('fontSize', 12)
+        font_name = options.get('fontName', 'Helvetica')
 
         if not text or x is None or y is None:
             return jsonify({'error': 'Text, x, and y coordinates required'}), 400
@@ -199,34 +231,25 @@ def insert_text(pdf_id):
         session = pdf_sessions[pdf_id]
         temp_output = os.path.join(UPLOAD_FOLDER, f"temp_{pdf_id}.pdf")
         
-        # Use your existing CLI to insert text
-        import subprocess
-        import sys
+        # Use the PDFEditor to insert text
+        editor = session['editor']
+        editor.insert_text(
+            output_path=temp_output,
+            page_number=page_number,
+            text=text,
+            x=float(x),
+            y=float(y),
+            font_size=int(font_size)
+        )
         
-        python_exe = sys.executable
-        script_path = os.path.join(os.path.dirname(__file__), '..', 'scripts', 'process_pdf.py')
+        # Update the session with the new file
+        if os.path.exists(temp_output):
+            os.replace(temp_output, session['filepath'])
+            # Reload the editor
+            session['editor'] = PDFEditor(session['filepath'])
+            session['editor'].load()
         
-        cmd = [
-            python_exe, script_path, 'insert',
-            session['filepath'], temp_output,
-            text, str(page_number + 1), str(x), str(y),
-            '--font-size', str(font_size),
-            '--font-name', font_name
-        ]
-        
-        result = subprocess.run(cmd, capture_output=True, text=True, cwd=os.path.dirname(__file__))
-        
-        if result.returncode == 0:
-            # Update the session with the new file
-            if os.path.exists(temp_output):
-                os.replace(temp_output, session['filepath'])
-                # Reload the editor
-                session['editor'] = PDFEditor(session['filepath'])
-                session['editor'].load()
-            
-            return jsonify({'success': True, 'message': 'Text inserted successfully'})
-        else:
-            return jsonify({'error': f'Insert failed: {result.stderr}'}), 500
+        return jsonify({'success': True, 'message': 'Text inserted successfully'})
 
     except Exception as e:
         return jsonify({'error': f'Text insertion failed: {str(e)}'}), 500
@@ -280,6 +303,57 @@ def download_pdf(pdf_id):
 
     except Exception as e:
         return jsonify({'error': f'Download failed: {str(e)}'}), 500
+
+@app.route('/api/pdf/<pdf_id>/export', methods=['GET'])
+def export_pdf(pdf_id):
+    """Export the current PDF (alias for download for frontend compatibility)"""
+    return download_pdf(pdf_id)
+
+@app.route('/api/pdf/<pdf_id>/page/<int:page_number>/rotate', methods=['POST'])
+def rotate_page(pdf_id, page_number):
+    """Rotate a PDF page"""
+    try:
+        if pdf_id not in pdf_sessions:
+            return jsonify({'error': 'PDF not found'}), 404
+
+        data = request.json
+        rotation = data.get('rotation', 90)
+        
+        if rotation not in [90, 180, 270, -90, -180, -270]:
+            return jsonify({'error': 'Rotation must be 90, 180, or 270 degrees'}), 400
+
+        session = pdf_sessions[pdf_id]
+        
+        # Use PyMuPDF (fitz) to rotate the page
+        import fitz
+        
+        # Open the PDF
+        doc = fitz.open(session['filepath'])
+        
+        # Rotate the specified page (0-indexed)
+        if 0 <= page_number < len(doc):
+            page = doc[page_number]
+            page.set_rotation(rotation)
+            
+            # Save the modified PDF
+            temp_output = os.path.join(UPLOAD_FOLDER, f"temp_rotated_{pdf_id}.pdf")
+            doc.save(temp_output)
+            doc.close()
+            
+            # Update the session with the new file
+            if os.path.exists(temp_output):
+                os.replace(temp_output, session['filepath'])
+                # Reload the editor
+                session['editor'] = PDFEditor(session['filepath'])
+                session['editor'].load()
+            
+            return jsonify({'success': True, 'message': f'Page {page_number} rotated by {rotation} degrees'})
+        else:
+            doc.close()
+            return jsonify({'error': 'Page number out of range'}), 400
+
+    except Exception as e:
+        return jsonify({'error': f'Page rotation failed: {str(e)}'}), 500
 
 @app.route('/api/pdf/<pdf_id>/fonts', methods=['GET'])
 def get_fonts(pdf_id):
