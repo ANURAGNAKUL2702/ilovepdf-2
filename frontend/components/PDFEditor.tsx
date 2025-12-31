@@ -7,7 +7,8 @@ import RightPropertiesPanel from './RightPropertiesPanel'
 import PDFCanvas from './PDFCanvas'
 import PageNavigation from './PageNavigation'
 import { EditorMode, TextBlock, RenderOptions } from '@/types'
-import { pdfAPI } from '@/lib/api'
+// API integration ready for backend connection
+// import { pdfAPI } from '@/lib/api'
 
 export default function PDFEditor() {
   const [file, setFile] = useState<File | null>(null)
@@ -33,17 +34,10 @@ export default function PDFEditor() {
       // Simulate API call delay
       await new Promise((resolve) => setTimeout(resolve, 500))
       
-      // For demonstration, we'll extract page count using FileReader
-      // In production, this would come from the backend
-      const reader = new FileReader()
-      reader.onload = async (e) => {
-        const arrayBuffer = e.target?.result as ArrayBuffer
-        // The actual page count would come from backend API
-        // For now, set a default
-        setTotalPages(1)
-        setCurrentPage(0)
-      }
-      reader.readAsArrayBuffer(uploadedFile)
+      // In production, the page count would come from backend API
+      // For now, set a default
+      setTotalPages(1)
+      setCurrentPage(0)
 
       // Simulate PDF ID from backend
       const mockPdfId = `pdf-${Date.now()}`
@@ -108,7 +102,7 @@ export default function PDFEditor() {
     } finally {
       setIsLoading(false)
     }
-  }, [pdfId, file])
+  }, [pdfId])
 
   // Handle mode change
   const handleModeChange = useCallback((newMode: EditorMode) => {
@@ -159,6 +153,7 @@ export default function PDFEditor() {
 
   // Handle property change
   const handlePropertyChange = useCallback(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (property: keyof RenderOptions, value: any) => {
       if (!selectedBlock) return
 

@@ -5,17 +5,19 @@ import { useState } from 'react'
 
 interface RightPropertiesPanelProps {
   selectedBlock: TextBlock | null
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onPropertyChange: (property: keyof RenderOptions, value: any) => void
 }
 
-const FONT_FAMILIES = [
-  'Helvetica',
-  'Times-Roman',
-  'Courier',
-  'Arial',
-  'Georgia',
-  'Verdana',
-]
+// Available font families for future enhancements
+// const FONT_FAMILIES = [
+//   'Helvetica',
+//   'Times-Roman',
+//   'Courier',
+//   'Arial',
+//   'Georgia',
+//   'Verdana',
+// ]
 
 const FONT_SIZES = [8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 24, 28, 32, 36, 48, 72]
 

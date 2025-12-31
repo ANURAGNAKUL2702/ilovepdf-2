@@ -32,8 +32,8 @@ export default function PDFCanvas({
 }: PDFCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [pdfDoc, setPdfDoc] = useState<any>(null)
-  const [pageCount, setPageCount] = useState(0)
   const [isLoading, setIsLoading] = useState(false)
   const [editingBlockId, setEditingBlockId] = useState<string | null>(null)
   const [editText, setEditText] = useState('')
@@ -51,7 +51,6 @@ export default function PDFCanvas({
         const loadingTask = pdfjsLib.getDocument(typedArray)
         const pdf = await loadingTask.promise
         setPdfDoc(pdf)
-        setPageCount(pdf.numPages)
       } catch (error) {
         console.error('Error loading PDF:', error)
         alert('Failed to load PDF. Please try another file.')

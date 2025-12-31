@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useRef } from 'react'
 
 interface TopNavBarProps {
   onFileUpload: (file: File) => void
