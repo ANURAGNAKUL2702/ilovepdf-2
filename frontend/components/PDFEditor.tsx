@@ -98,6 +98,7 @@ export default function PDFEditor() {
 
   // Handle mode change
   const handleModeChange = useCallback((newMode: EditorMode) => {
+    console.log('Mode changed to:', newMode)
     setMode(newMode)
     if (newMode !== 'edit-text') {
       setSelectedBlock(null)
@@ -171,6 +172,42 @@ export default function PDFEditor() {
     [pdfId, currentPage, mode]
   )
 
+  // Handle page rotation
+  const handleRotatePage = useCallback(
+    async (pageNum: number, degrees: 90 | 180 | 270) => {
+      if (!pdfId) return
+
+      try {
+        console.log(`Rotating page ${pageNum} by ${degrees} degrees`)
+        // In production, this would call backend API
+        // await pdfAPI.rotatePage(pdfId, pageNum, degrees)
+        alert(`Page ${pageNum + 1} rotated by ${degrees}° (API integration pending)`)
+      } catch (error) {
+        console.error('Error rotating page:', error)
+        alert('Failed to rotate page. Please try again.')
+      }
+    },
+    [pdfId]
+  )
+
+  // Handle page reordering
+  const handleReorderPages = useCallback(
+    async (fromPage: number, toPage: number) => {
+      if (!pdfId) return
+
+      try {
+        console.log(`Moving page ${fromPage} to position ${toPage}`)
+        // In production, this would call backend API
+        // await pdfAPI.reorderPages(pdfId, fromPage, toPage)
+        alert(`Page ${fromPage + 1} moved to position ${toPage + 1} (API integration pending)`)
+      } catch (error) {
+        console.error('Error reordering pages:', error)
+        alert('Failed to reorder pages. Please try again.')
+      }
+    },
+    [pdfId]
+  )
+
   // Handle property change
   const handlePropertyChange = useCallback(
     (property: keyof RenderOptions, value: PropertyValue) => {
@@ -233,6 +270,8 @@ export default function PDFEditor() {
             onTextBlockSelect={handleTextBlockSelect}
             onTextBlockEdit={handleTextBlockEdit}
             onAddText={handleAddText}
+            onRotatePage={handleRotatePage}
+            onReorderPages={handleReorderPages}
             mode={mode}
           />
         </div>

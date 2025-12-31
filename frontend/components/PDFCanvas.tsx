@@ -19,6 +19,8 @@ interface PDFCanvasProps {
   onTextBlockSelect: (block: TextBlock) => void
   onTextBlockEdit: (blockId: string, newText: string) => void
   onAddText: (x: number, y: number, text?: string) => void
+  onRotatePage?: (pageNum: number, degrees: 90 | 180 | 270) => void
+  onReorderPages?: (fromPage: number, toPage: number) => void
   mode: string
 }
 
@@ -31,6 +33,8 @@ export default function PDFCanvas({
   onTextBlockSelect,
   onTextBlockEdit,
   onAddText,
+  onRotatePage,
+  onReorderPages,
   mode,
 }: PDFCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -104,6 +108,15 @@ export default function PDFCanvas({
       const x = (e.clientX - rect.left) / zoom
       const y = (e.clientY - rect.top) / zoom
       onAddText(x, y)
+    } else if (mode === 'rotate-pages') {
+      console.log('Rotate pages mode - click detected on canvas')
+      // Placeholder for rotate functionality
+    } else if (mode === 'organize-pages') {
+      console.log('Organize pages mode - click detected on canvas')
+      // Placeholder for organize functionality - onReorderPages will be used by page navigation
+      if (onReorderPages) {
+        console.log('Page reordering available')
+      }
     }
   }
 
@@ -134,6 +147,14 @@ export default function PDFCanvas({
   }
 
   const currentPageBlocks = textBlocks.filter((block) => block.pageNumber === currentPage)
+
+  // Handler for rotate button clicks
+  const handleRotateClick = (e: React.MouseEvent, degrees: 90 | 180 | 270) => {
+    e.stopPropagation() // Prevent canvas click handler from firing
+    if (onRotatePage) {
+      onRotatePage(currentPage, degrees)
+    }
+  }
 
   return (
     <div className="flex-1 overflow-auto bg-gray-100 p-8">
@@ -171,9 +192,106 @@ export default function PDFCanvas({
           ref={containerRef} 
           className="inline-block relative cursor-pointer" 
           onClick={handleCanvasClick}
-          style={{ cursor: mode === 'add-text' ? 'crosshair' : 'default' }}
+          style={{ 
+            cursor: mode === 'add-text' ? 'crosshair' 
+              : mode === 'edit-text' ? 'text'
+              : mode === 'rotate-pages' ? 'grab'
+              : mode === 'organize-pages' ? 'move'
+              : 'default' 
+          }}
         >
+          {/* Active Mode Indicator */}
+          <div className="absolute top-4 right-4 bg-white rounded-lg shadow-md px-3 py-2 border border-gray-200 z-10 flex items-center space-x-2">
+            {mode === 'view' && (
+              <>
+                <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                <span className="text-xs font-medium text-gray-700">View Mode</span>
+              </>
+            )}
+            {mode === 'edit-text' && (
+              <>
+                <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                <span className="text-xs font-medium text-primary-700">Edit Text</span>
+              </>
+            )}
+            {mode === 'add-text' && (
+              <>
+                <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                <span className="text-xs font-medium text-primary-700">Add Text - Click to place</span>
+              </>
+            )}
+            {mode === 'organize-pages' && (
+              <>
+                <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+                <span className="text-xs font-medium text-primary-700">Organize Pages</span>
+              </>
+            )}
+            {mode === 'rotate-pages' && (
+              <>
+                <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                <span className="text-xs font-medium text-primary-700">Rotate Pages</span>
+              </>
+            )}
+          </div>
+
           <canvas ref={canvasRef} className="shadow-lg bg-white" />
+          
+          {/* Rotate Controls Overlay */}
+          {mode === 'rotate-pages' && (
+            <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-white rounded-lg shadow-lg p-4 flex items-center space-x-2 border border-gray-200 z-10">
+              <span className="text-sm font-medium text-gray-700">Rotate Page:</span>
+              <button
+                onClick={(e) => handleRotateClick(e, 90)}
+                className="flex items-center space-x-1 px-3 py-2 bg-primary-600 text-white rounded hover:bg-primary-700 transition-colors text-sm font-medium"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                <span>90°</span>
+              </button>
+              <button
+                onClick={(e) => handleRotateClick(e, 180)}
+                className="flex items-center space-x-1 px-3 py-2 bg-primary-600 text-white rounded hover:bg-primary-700 transition-colors text-sm font-medium"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                <span>180°</span>
+              </button>
+              <button
+                onClick={(e) => handleRotateClick(e, 270)}
+                className="flex items-center space-x-1 px-3 py-2 bg-primary-600 text-white rounded hover:bg-primary-700 transition-colors text-sm font-medium"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                <span>270°</span>
+              </button>
+            </div>
+          )}
+
+          {/* Organize Pages Mode Indicator */}
+          {mode === 'organize-pages' && (
+            <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-white rounded-lg shadow-lg p-4 border border-gray-200 z-10">
+              <div className="flex items-center space-x-2">
+                <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+                <span className="text-sm font-medium text-gray-700">Use page navigation to reorder pages</span>
+              </div>
+            </div>
+          )}
           
           {/* Text block overlays */}
           {currentPageBlocks.map((block) => {
