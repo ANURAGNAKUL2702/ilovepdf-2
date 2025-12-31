@@ -234,7 +234,6 @@ export default function PDFEditor() {
             onTextBlockEdit={handleTextBlockEdit}
             onAddText={handleAddText}
             mode={mode}
-            mode={mode}
           />
         </div>
 
