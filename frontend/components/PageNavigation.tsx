@@ -54,7 +54,7 @@ export default function PageNavigation({
         <button
           onClick={handlePrevious}
           disabled={currentPage === 0}
-          className="p-2 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="p-2 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-gray-800"
           title="Previous page"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -63,7 +63,7 @@ export default function PageNavigation({
         </button>
 
         <div className="flex items-center space-x-2">
-          <span className="text-sm text-gray-600">Page</span>
+          <span className="text-sm text-gray-800 font-medium">Page</span>
           <input
             type="number"
             value={currentPage + 1}
@@ -77,13 +77,13 @@ export default function PageNavigation({
             max={totalPages}
             className="w-16 px-2 py-1 text-sm text-center border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           />
-          <span className="text-sm text-gray-600">of {totalPages}</span>
+          <span className="text-sm text-gray-800 font-medium">of {totalPages}</span>
         </div>
 
         <button
           onClick={handleNext}
           disabled={currentPage === totalPages - 1}
-          className="p-2 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="p-2 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-gray-800"
           title="Next page"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -97,7 +97,7 @@ export default function PageNavigation({
         <button
           onClick={handleZoomOut}
           disabled={zoom === ZOOM_LEVELS[0]}
-          className="p-2 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="p-2 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-gray-800"
           title="Zoom out"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -108,7 +108,7 @@ export default function PageNavigation({
         <select
           value={zoom}
           onChange={(e) => onZoomChange(parseFloat(e.target.value))}
-          className="px-3 py-1 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+          className="px-3 py-1 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-800 font-medium"
         >
           {ZOOM_LEVELS.map((level) => (
             <option key={level} value={level}>
@@ -120,7 +120,7 @@ export default function PageNavigation({
         <button
           onClick={handleZoomIn}
           disabled={zoom === ZOOM_LEVELS[ZOOM_LEVELS.length - 1]}
-          className="p-2 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="p-2 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-gray-800"
           title="Zoom in"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -130,7 +130,7 @@ export default function PageNavigation({
 
         <button
           onClick={handleZoomReset}
-          className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+          className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors text-gray-800 font-medium"
           title="Reset zoom to 100%"
         >
           Reset
@@ -138,7 +138,7 @@ export default function PageNavigation({
       </div>
 
       {/* Quick Info */}
-      <div className="text-sm text-gray-600">
+      <div className="text-sm text-gray-800 font-medium">
         Zoom: {Math.round(zoom * 100)}%
       </div>
     </div>
