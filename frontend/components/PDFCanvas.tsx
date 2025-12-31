@@ -308,7 +308,9 @@ export default function PDFCanvas({
                   width: `${(block.x1 - block.x0) * zoom}px`,
                   height: `${(block.y1 - block.y0) * zoom}px`,
                   fontSize: `${block.fontSize * zoom}px`,
+                  fontFamily: block.fontName,
                   pointerEvents: mode === 'edit-text' ? 'auto' : 'none',
+                  cursor: mode === 'edit-text' ? 'text' : 'default',
                 }}
                 onClick={() => handleTextBlockClick(block)}
                 onDoubleClick={() => handleTextBlockDoubleClick(block)}
@@ -328,7 +330,24 @@ export default function PDFCanvas({
                       fontFamily: block.fontName,
                     }}
                   />
-                ) : null}
+                ) : (
+                  mode === 'edit-text' && (
+                    <div
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        fontSize: `${block.fontSize * zoom}px`,
+                        fontFamily: block.fontName,
+                        whiteSpace: 'pre-wrap',
+                        overflow: 'hidden',
+                      }}
+                    >
+                      {block.text}
+                    </div>
+                  )
+                )}
               </div>
             )
           })}
