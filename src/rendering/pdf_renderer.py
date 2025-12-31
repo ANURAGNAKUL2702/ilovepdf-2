@@ -12,6 +12,17 @@ from ..extraction.text_extractor import TextBlock
 from ..font.font_detector import FontInfo
 
 
+# Map PDF font names to PyMuPDF font names
+FONT_NAME_MAPPING = {
+    "Times": "times",
+    "TimesNewRoman": "times",
+    "Helvetica": "helv",
+    "Courier": "cour",
+    "Symbol": "symb",
+    "ZapfDingbats": "zadb"
+}
+
+
 @dataclass
 class RenderOptions:
     """Options for rendering text in PDF."""
@@ -33,19 +44,9 @@ class RenderOptions:
         Returns:
             RenderOptions object
         """
-        # Map PDF font names to PyMuPDF font names
-        font_map = {
-            "Times": "times",
-            "TimesNewRoman": "times",
-            "Helvetica": "helv",
-            "Courier": "cour",
-            "Symbol": "symb",
-            "ZapfDingbats": "zadb"
-        }
-        
         # Try to find matching font
         font_name = "helv"  # Default
-        for key, value in font_map.items():
+        for key, value in FONT_NAME_MAPPING.items():
             if key.lower() in font_info.name.lower():
                 font_name = value
                 break
@@ -69,17 +70,8 @@ class RenderOptions:
         Returns:
             RenderOptions object
         """
-        font_map = {
-            "Times": "times",
-            "TimesNewRoman": "times",
-            "Helvetica": "helv",
-            "Courier": "cour",
-            "Symbol": "symb",
-            "ZapfDingbats": "zadb"
-        }
-        
         font_name = "helv"
-        for key, value in font_map.items():
+        for key, value in FONT_NAME_MAPPING.items():
             if key.lower() in text_block.font_name.lower():
                 font_name = value
                 break

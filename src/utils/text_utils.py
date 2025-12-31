@@ -66,7 +66,7 @@ class SpellChecker:
         # Preserve original case if possible
         if word.isupper():
             return corrected.upper()
-        elif word[0].isupper():
+        elif len(word) > 0 and word[0].isupper():
             return corrected.capitalize()
         else:
             return corrected
