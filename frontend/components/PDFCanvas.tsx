@@ -149,7 +149,8 @@ export default function PDFCanvas({
   const currentPageBlocks = textBlocks.filter((block) => block.pageNumber === currentPage)
 
   // Handler for rotate button clicks
-  const handleRotateClick = (degrees: 90 | 180 | 270) => {
+  const handleRotateClick = (e: React.MouseEvent, degrees: 90 | 180 | 270) => {
+    e.stopPropagation() // Prevent canvas click handler from firing
     if (onRotatePage) {
       onRotatePage(currentPage, degrees)
     }
@@ -251,7 +252,7 @@ export default function PDFCanvas({
             <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-white rounded-lg shadow-lg p-4 flex items-center space-x-2 border border-gray-200 z-10">
               <span className="text-sm font-medium text-gray-700">Rotate Page:</span>
               <button
-                onClick={() => handleRotateClick(90)}
+                onClick={(e) => handleRotateClick(e, 90)}
                 className="flex items-center space-x-1 px-3 py-2 bg-primary-600 text-white rounded hover:bg-primary-700 transition-colors text-sm font-medium"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -260,7 +261,7 @@ export default function PDFCanvas({
                 <span>90°</span>
               </button>
               <button
-                onClick={() => handleRotateClick(180)}
+                onClick={(e) => handleRotateClick(e, 180)}
                 className="flex items-center space-x-1 px-3 py-2 bg-primary-600 text-white rounded hover:bg-primary-700 transition-colors text-sm font-medium"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -269,7 +270,7 @@ export default function PDFCanvas({
                 <span>180°</span>
               </button>
               <button
-                onClick={() => handleRotateClick(270)}
+                onClick={(e) => handleRotateClick(e, 270)}
                 className="flex items-center space-x-1 px-3 py-2 bg-primary-600 text-white rounded hover:bg-primary-700 transition-colors text-sm font-medium"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
