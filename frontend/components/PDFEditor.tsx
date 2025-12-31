@@ -159,9 +159,14 @@ export default function PDFEditor() {
           fontName: 'Helvetica'
         })
 
-        // Refresh text blocks
-        const blocks = await pdfAPI.extractTextBlocks(pdfId, currentPage)
-        setTextBlocks(blocks)
+        // Refresh text blocks for the current page
+        const newBlocks = await pdfAPI.extractTextBlocks(pdfId, currentPage)
+        
+        // Update text blocks, replacing blocks for the current page
+        setTextBlocks((prev) => [
+          ...prev.filter((block) => block.pageNumber !== currentPage),
+          ...newBlocks
+        ])
         
         console.log('Text added at:', x, y)
       } catch (error) {
@@ -175,19 +180,36 @@ export default function PDFEditor() {
   // Handle page rotation
   const handleRotatePage = useCallback(
     async (pageNum: number, degrees: 90 | 180 | 270) => {
-      if (!pdfId) return
+      if (!pdfId || !file) return
 
       try {
+        setIsLoading(true)
         console.log(`Rotating page ${pageNum} by ${degrees} degrees`)
-        // In production, this would call backend API
-        // await pdfAPI.rotatePage(pdfId, pageNum, degrees)
-        alert(`Page ${pageNum + 1} rotated by ${degrees}° (API integration pending)`)
+        
+        // Call backend API to rotate the page
+        await pdfAPI.rotatePage(pdfId, pageNum, degrees)
+        
+        // Re-upload the modified file to refresh the PDF view
+        // This is necessary because the PDF has been modified server-side
+        const response = await pdfAPI.getPDFMetadata(pdfId)
+        
+        // Fetch the updated PDF from the server
+        const blob = await pdfAPI.exportPDF(pdfId)
+        const modifiedFile = new File([blob], file.name, { type: 'application/pdf' })
+        
+        // Reload the file to show rotation
+        setFile(modifiedFile)
+        
+        // Show success message
+        alert(`Page ${pageNum + 1} rotated by ${degrees}° successfully!`)
       } catch (error) {
         console.error('Error rotating page:', error)
         alert('Failed to rotate page. Please try again.')
+      } finally {
+        setIsLoading(false)
       }
     },
-    [pdfId]
+    [pdfId, file]
   )
 
   // Handle page reordering
