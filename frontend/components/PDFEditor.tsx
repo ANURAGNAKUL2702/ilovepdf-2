@@ -9,7 +9,7 @@ import PageNavigation from './PageNavigation'
 import { EditorMode, TextBlock, RenderOptions } from '@/types'
 import type { PropertyValue } from './RightPropertiesPanel'
 // API integration ready for backend connection
-// import { pdfAPI } from '@/lib/api'
+import { pdfAPI } from '@/lib/api'
 
 export default function PDFEditor() {
   const [file, setFile] = useState<File | null>(null)
@@ -28,28 +28,19 @@ export default function PDFEditor() {
     setIsLoading(true)
 
     try {
-      // In a real implementation, this would call the backend API
-      // For now, we'll simulate the response
       console.log('File uploaded:', uploadedFile.name)
       
-      // Simulate API call delay
-      await new Promise((resolve) => setTimeout(resolve, 500))
+      // Call the actual backend API
+      const response = await pdfAPI.uploadPDF(uploadedFile)
       
-      // In production, the page count would come from backend API
-      // For now, set a default
-      setTotalPages(1)
+      // Set the PDF ID and metadata from the backend
+      setPdfId(response.id)
+      setTotalPages(response.metadata.pages)
       setCurrentPage(0)
 
-      // Simulate PDF ID from backend
-      const mockPdfId = `pdf-${Date.now()}`
-      setPdfId(mockPdfId)
-
-      // In production, fetch text blocks from backend
-      // const blocks = await pdfAPI.extractTextBlocks(mockPdfId)
-      // setTextBlocks(blocks)
-      
-      // For demo, create mock text blocks
-      setTextBlocks([])
+      // Fetch text blocks from the backend
+      const blocks = await pdfAPI.extractTextBlocks(response.id)
+      setTextBlocks(blocks)
       
     } catch (error) {
       console.error('Error uploading file:', error)
@@ -135,21 +126,49 @@ export default function PDFEditor() {
       if (!pdfId) return
 
       try {
-        // Update local state
+        // Update local state first for immediate feedback
         setTextBlocks((prev) =>
           prev.map((block) => (block.id === blockId ? { ...block, text: newText } : block))
         )
 
-        // In production, send update to backend
-        // await pdfAPI.replaceText(pdfId, blockId, newText, true)
+        // Send update to backend
+        await pdfAPI.replaceText(pdfId, blockId, newText, true)
 
         console.log('Text updated:', blockId, newText)
       } catch (error) {
         console.error('Error updating text:', error)
         alert('Failed to update text. Please try again.')
+        // Revert local state on error
+        const blocks = await pdfAPI.extractTextBlocks(pdfId, currentPage)
+        setTextBlocks(blocks)
       }
     },
-    [pdfId]
+    [pdfId, currentPage]
+  )
+
+  // Handle adding new text
+  const handleAddText = useCallback(
+    async (x: number, y: number, text: string = "New Text") => {
+      if (!pdfId || mode !== 'add-text') return
+
+      try {
+        // Insert text via API
+        await pdfAPI.insertText(pdfId, currentPage, text, x, y, {
+          fontSize: 12,
+          fontName: 'Helvetica'
+        })
+
+        // Refresh text blocks
+        const blocks = await pdfAPI.extractTextBlocks(pdfId, currentPage)
+        setTextBlocks(blocks)
+        
+        console.log('Text added at:', x, y)
+      } catch (error) {
+        console.error('Error adding text:', error)
+        alert('Failed to add text. Please try again.')
+      }
+    },
+    [pdfId, currentPage, mode]
   )
 
   // Handle property change
@@ -213,6 +232,8 @@ export default function PDFEditor() {
             selectedBlockId={selectedBlock?.id || null}
             onTextBlockSelect={handleTextBlockSelect}
             onTextBlockEdit={handleTextBlockEdit}
+            onAddText={handleAddText}
+            mode={mode}
             mode={mode}
           />
         </div>

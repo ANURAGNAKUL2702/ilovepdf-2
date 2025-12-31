@@ -18,6 +18,7 @@ interface PDFCanvasProps {
   selectedBlockId: string | null
   onTextBlockSelect: (block: TextBlock) => void
   onTextBlockEdit: (blockId: string, newText: string) => void
+  onAddText: (x: number, y: number, text?: string) => void
   mode: string
 }
 
@@ -29,6 +30,7 @@ export default function PDFCanvas({
   selectedBlockId,
   onTextBlockSelect,
   onTextBlockEdit,
+  onAddText,
   mode,
 }: PDFCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -96,6 +98,15 @@ export default function PDFCanvas({
     }
   }
 
+  const handleCanvasClick = (e: React.MouseEvent) => {
+    if (mode === 'add-text' && containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect()
+      const x = (e.clientX - rect.left) / zoom
+      const y = (e.clientY - rect.top) / zoom
+      onAddText(x, y)
+    }
+  }
+
   const handleTextBlockDoubleClick = (block: TextBlock) => {
     if (mode === 'edit-text') {
       setEditingBlockId(block.id)
@@ -156,7 +167,12 @@ export default function PDFCanvas({
           </div>
         </div>
       ) : (
-        <div ref={containerRef} className="inline-block relative">
+        <div 
+          ref={containerRef} 
+          className="inline-block relative cursor-pointer" 
+          onClick={handleCanvasClick}
+          style={{ cursor: mode === 'add-text' ? 'crosshair' : 'default' }}
+        >
           <canvas ref={canvasRef} className="shadow-lg bg-white" />
           
           {/* Text block overlays */}
