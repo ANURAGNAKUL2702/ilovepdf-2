@@ -4,6 +4,7 @@ A production-grade PDF editing system for extracting, modifying, and rendering P
 
 ## Features
 
+### Backend (Python)
 - **Text Extraction with Layout Preservation**: Extract text from PDFs with detailed coordinate information, font properties, and layout structure
 - **Font Detection and Analysis**: Detect and analyze fonts used in PDFs, including size, style, and formatting
 - **Spell Checking and Correction**: Automatically check and correct spelling mistakes in PDFs
@@ -12,30 +13,40 @@ A production-grade PDF editing system for extracting, modifying, and rendering P
 - **Multi-page Support**: Work with single or multi-page PDF documents
 - **Command-Line Interface**: Easy-to-use CLI for common operations
 
+### Frontend (React/Next.js)
+- **Interactive PDF Viewer**: Page-by-page visual preview with zoom controls
+- **Text Selection & Editing**: Click to select, double-click to edit text blocks
+- **Property Panel**: Adjust font size, line spacing, and text alignment
+- **Multiple Tools**: View, edit text, add text, organize pages, rotate pages
+- **Layout Preservation**: Maintains original formatting during edits
+- **Responsive Design**: Three-panel layout optimized for desktop workflows
+
 ## Installation
 
-### Requirements
+### Backend Requirements
 
 - Python 3.8 or higher
 - pip package manager
 
-### Install Dependencies
+### Backend Setup
 
 ```bash
 pip install -r requirements.txt
-```
-
-### Install Package
-
-```bash
 pip install -e .
-```
-
-### Download TextBlob Corpora (Required for Spell Checking)
-
-```bash
 python -m textblob.download_corpora
 ```
+
+### Frontend Setup
+
+The web application frontend is located in the `frontend/` directory.
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+See [frontend/README.md](frontend/README.md) for detailed frontend documentation.
 
 ## Quick Start
 
