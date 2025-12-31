@@ -130,7 +130,8 @@ def run_integration_tests():
         pdf_content = test_export_pdf(pdf_id)
         
         # Save the exported PDF
-        output_path = "/tmp/test_output.pdf"
+        output_dir = tempfile.gettempdir()
+        output_path = os.path.join(output_dir, "test_output.pdf")
         with open(output_path, 'wb') as f:
             f.write(pdf_content)
         print(f"\n✓ Exported PDF saved to: {output_path}")

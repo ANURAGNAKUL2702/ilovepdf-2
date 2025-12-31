@@ -7,6 +7,7 @@ import os
 import json
 import tempfile
 import uuid
+import fitz  # PyMuPDF
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
@@ -341,13 +342,12 @@ def rotate_page(pdf_id, page_number):
         data = request.json
         rotation = data.get('rotation', 90)
         
-        if rotation not in [90, 180, 270, -90, -180, -270]:
+        # Normalize rotation to positive values (0, 90, 180, 270)
+        rotation = rotation % 360
+        if rotation not in [0, 90, 180, 270]:
             return jsonify({'error': 'Rotation must be 90, 180, or 270 degrees'}), 400
 
         session = pdf_sessions[pdf_id]
-        
-        # Use PyMuPDF (fitz) to rotate the page
-        import fitz
         
         # Open the PDF
         doc = fitz.open(session['filepath'])

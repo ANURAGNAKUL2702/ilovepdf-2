@@ -180,7 +180,7 @@ export default function PDFEditor() {
   // Handle page rotation
   const handleRotatePage = useCallback(
     async (pageNum: number, degrees: 90 | 180 | 270) => {
-      if (!pdfId) return
+      if (!pdfId || !file) return
 
       try {
         setIsLoading(true)
@@ -189,12 +189,19 @@ export default function PDFEditor() {
         // Call backend API to rotate the page
         await pdfAPI.rotatePage(pdfId, pageNum, degrees)
         
-        // Reload the page to show the rotation
-        // In a real app, we'd refresh the PDF rendering
-        alert(`Page ${pageNum + 1} rotated by ${degrees}° successfully!`)
+        // Re-upload the modified file to refresh the PDF view
+        // This is necessary because the PDF has been modified server-side
+        const response = await pdfAPI.getPDFMetadata(pdfId)
         
-        // Optionally refresh the PDF view
-        window.location.reload()
+        // Fetch the updated PDF from the server
+        const blob = await pdfAPI.exportPDF(pdfId)
+        const modifiedFile = new File([blob], file.name, { type: 'application/pdf' })
+        
+        // Reload the file to show rotation
+        setFile(modifiedFile)
+        
+        // Show success message
+        alert(`Page ${pageNum + 1} rotated by ${degrees}° successfully!`)
       } catch (error) {
         console.error('Error rotating page:', error)
         alert('Failed to rotate page. Please try again.')
@@ -202,7 +209,7 @@ export default function PDFEditor() {
         setIsLoading(false)
       }
     },
-    [pdfId]
+    [pdfId, file]
   )
 
   // Handle page reordering
