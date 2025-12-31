@@ -85,35 +85,57 @@ def upload_pdf():
 
 @app.route('/api/pdf/<pdf_id>/text-blocks', methods=['GET'])
 def get_text_blocks(pdf_id):
-    """Get text blocks from a PDF page"""
+    """Get text blocks from a PDF page or all pages"""
     try:
         if pdf_id not in pdf_sessions:
             return jsonify({'error': 'PDF not found'}), 404
 
         editor = pdf_sessions[pdf_id]['editor']
-        page_number = request.args.get('page', 0, type=int)
-        
-        # Get text blocks for the specified page
-        blocks = editor.get_text_blocks(page_number)
+        page_number = request.args.get('page', type=int)
         
         # Convert to frontend format (matching TextBlock interface)
         text_blocks = []
-        for i, block in enumerate(blocks):
-            text_blocks.append({
-                'id': f"{pdf_id}-{page_number}-{i}",
-                'text': block.text,
-                'x0': block.x0,
-                'y0': block.y0,
-                'x1': block.x1,
-                'y1': block.y1,
-                'pageNumber': block.page_number,
-                'fontName': getattr(block, 'font_name', 'Helvetica'),
-                'fontSize': getattr(block, 'font_size', 12),
-                'fontFlags': getattr(block, 'font_flags', 0),
-                'color': getattr(block, 'color', '#000000'),
-                'lineNumber': getattr(block, 'line_number', 0),
-                'blockNumber': getattr(block, 'block_number', i)
-            })
+        
+        if page_number is not None:
+            # Get blocks for specific page
+            blocks = editor.get_text_blocks(page_number)
+            for i, block in enumerate(blocks):
+                text_blocks.append({
+                    'id': f"{pdf_id}-{page_number}-{i}",
+                    'text': block.text,
+                    'x0': block.x0,
+                    'y0': block.y0,
+                    'x1': block.x1,
+                    'y1': block.y1,
+                    'pageNumber': block.page_number,
+                    'fontName': getattr(block, 'font_name', 'Helvetica'),
+                    'fontSize': getattr(block, 'font_size', 12),
+                    'fontFlags': getattr(block, 'font_flags', 0),
+                    'color': getattr(block, 'color', '#000000'),
+                    'lineNumber': getattr(block, 'line_number', 0),
+                    'blockNumber': getattr(block, 'block_number', i)
+                })
+        else:
+            # Get blocks from all pages
+            page_count = editor.get_page_count()
+            for page_num in range(page_count):
+                blocks = editor.get_text_blocks(page_num)
+                for i, block in enumerate(blocks):
+                    text_blocks.append({
+                        'id': f"{pdf_id}-{page_num}-{i}",
+                        'text': block.text,
+                        'x0': block.x0,
+                        'y0': block.y0,
+                        'x1': block.x1,
+                        'y1': block.y1,
+                        'pageNumber': block.page_number,
+                        'fontName': getattr(block, 'font_name', 'Helvetica'),
+                        'fontSize': getattr(block, 'font_size', 12),
+                        'fontFlags': getattr(block, 'font_flags', 0),
+                        'color': getattr(block, 'color', '#000000'),
+                        'lineNumber': getattr(block, 'line_number', 0),
+                        'blockNumber': getattr(block, 'block_number', i)
+                    })
 
         return jsonify({'textBlocks': text_blocks})
 

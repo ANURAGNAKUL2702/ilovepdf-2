@@ -159,9 +159,14 @@ export default function PDFEditor() {
           fontName: 'Helvetica'
         })
 
-        // Refresh text blocks
-        const blocks = await pdfAPI.extractTextBlocks(pdfId, currentPage)
-        setTextBlocks(blocks)
+        // Refresh text blocks for the current page
+        const newBlocks = await pdfAPI.extractTextBlocks(pdfId, currentPage)
+        
+        // Update text blocks, replacing blocks for the current page
+        setTextBlocks((prev) => [
+          ...prev.filter((block) => block.pageNumber !== currentPage),
+          ...newBlocks
+        ])
         
         console.log('Text added at:', x, y)
       } catch (error) {
