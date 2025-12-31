@@ -98,6 +98,7 @@ export default function PDFEditor() {
 
   // Handle mode change
   const handleModeChange = useCallback((newMode: EditorMode) => {
+    console.log('Mode changed to:', newMode)
     setMode(newMode)
     if (newMode !== 'edit-text') {
       setSelectedBlock(null)
@@ -233,7 +234,6 @@ export default function PDFEditor() {
             onTextBlockSelect={handleTextBlockSelect}
             onTextBlockEdit={handleTextBlockEdit}
             onAddText={handleAddText}
-            mode={mode}
             mode={mode}
           />
         </div>
