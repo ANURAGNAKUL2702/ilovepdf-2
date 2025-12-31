@@ -78,23 +78,23 @@ export default function PDFEditor() {
       setIsLoading(true)
       console.log('Exporting PDF...')
       
-      // In production, this would export the PDF from backend
-      // const blob = await pdfAPI.exportPDF(pdfId)
-      // const url = URL.createObjectURL(blob)
-      // const a = document.createElement('a')
-      // a.href = url
-      // a.download = `edited-${file?.name || 'document.pdf'}`
-      // a.click()
-      // URL.revokeObjectURL(url)
+      // Export the PDF from backend
+      const blob = await pdfAPI.exportPDF(pdfId)
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `edited-${file?.name || 'document.pdf'}`
+      a.click()
+      URL.revokeObjectURL(url)
       
-      alert('Export functionality will download the edited PDF')
+      console.log('PDF exported successfully')
     } catch (error) {
       console.error('Error exporting:', error)
       alert('Failed to export PDF. Please try again.')
     } finally {
       setIsLoading(false)
     }
-  }, [pdfId])
+  }, [pdfId, file])
 
   // Handle mode change
   const handleModeChange = useCallback((newMode: EditorMode) => {
