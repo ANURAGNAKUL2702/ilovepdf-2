@@ -1,0 +1,443 @@
+Metadata-Version: 2.1
+Name: pdf-editing-system
+Version: 1.0.0
+Summary: A production-grade PDF editing system for text extraction, modification, and rendering
+Home-page: https://github.com/ANURAGNAKUL2702/ilovepdf-2
+Author: PDF Editing System Contributors
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+Provides-Extra: dev
+
+# PDF Editing System
+
+A production-grade PDF editing system for extracting, modifying, and rendering PDFs with advanced text manipulation capabilities.
+
+## Features
+
+- **Text Extraction with Layout Preservation**: Extract text from PDFs with detailed coordinate information, font properties, and layout structure
+- **Font Detection and Analysis**: Detect and analyze fonts used in PDFs, including size, style, and formatting
+- **Spell Checking and Correction**: Automatically check and correct spelling mistakes in PDFs
+- **Text Insertion and Modification**: Insert new text or modify existing text while preserving original formatting
+- **Style Preservation**: Maintain font type, size, color, and layout during text modifications
+- **Multi-page Support**: Work with single or multi-page PDF documents
+- **Command-Line Interface**: Easy-to-use CLI for common operations
+
+## Installation
+
+### Requirements
+
+- Python 3.8 or higher
+- pip package manager
+
+### Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### Install Package
+
+```bash
+pip install -e .
+```
+
+### Download TextBlob Corpora (Required for Spell Checking)
+
+```bash
+python -m textblob.download_corpora
+```
+
+## Quick Start
+
+### Python API
+
+```python
+from src import PDFEditor
+
+# Initialize editor
+editor = PDFEditor("input.pdf")
+
+# Load and analyze the PDF
+editor.load()
+
+# Extract text
+text = editor.extract_text()
+print(text)
+
+# Check spelling
+mistakes = editor.check_spelling()
+for block, errors in mistakes:
+    print(f"Found errors in: {block.text}")
+    for word, start, end in errors:
+        suggestions = editor.get_spelling_suggestions(word)
+        print(f"  '{word}' -> {suggestions}")
+
+# Correct spelling
+editor.correct_spelling("corrected.pdf")
+
+# Insert new text
+editor.insert_text(
+    output_path="modified.pdf",
+    page_number=0,
+    text="New text",
+    x=100,
+    y=200,
+    font_size=12
+)
+
+# Replace text
+editor.replace_text(
+    output_path="replaced.pdf",
+    old_text="old",
+    new_text="new",
+    preserve_style=True
+)
+
+# Find text
+blocks = editor.find_text("search term")
+for block in blocks:
+    print(f"Found on page {block.page_number + 1}: {block.text}")
+```
+
+### Command-Line Interface
+
+```bash
+# Check spelling in a PDF
+python scripts/process_pdf.py check input.pdf
+
+# Correct spelling
+python scripts/process_pdf.py correct input.pdf output.pdf
+
+# Insert text at specific position
+python scripts/process_pdf.py insert input.pdf output.pdf "New text" 1 100 200 --font-size 14
+
+# Replace text
+python scripts/process_pdf.py replace input.pdf output.pdf "old" "new"
+
+# Extract text
+python scripts/process_pdf.py extract input.pdf -o output.txt
+
+# Find text
+python scripts/process_pdf.py find input.pdf "search term"
+
+# Display PDF information
+python scripts/process_pdf.py info input.pdf --fonts
+```
+
+## Architecture
+
+### Module Structure
+
+```
+src/
+├── extraction/          # Text extraction with layout information
+│   └── text_extractor.py
+├── font/               # Font detection and analysis
+│   └── font_detector.py
+├── layout/             # Layout mapping and preservation
+│   └── layout_mapper.py
+├── utils/              # Text utilities (spell checking, modification)
+│   └── text_utils.py
+├── rendering/          # PDF rendering and text embedding
+│   └── pdf_renderer.py
+└── pdf_editor.py       # Main API integrating all modules
+```
+
+### Key Components
+
+#### Text Extraction Module (`src/extraction/`)
+
+Extracts text from PDFs with detailed metadata:
+- Text content and coordinates (x0, y0, x1, y1)
+- Font name, size, and flags
+- Color information
+- Page, block, and line numbers
+
+```python
+from src.extraction import TextExtractor
+
+with TextExtractor("document.pdf") as extractor:
+    blocks = extractor.extract_text_blocks()
+    for block in blocks:
+        print(f"{block.text} at ({block.x0}, {block.y0})")
+```
+
+#### Font Detection Module (`src/font/`)
+
+Detects and analyzes fonts in PDFs:
+- Font name and size
+- Style flags (bold, italic, monospace, serif)
+- Color information
+- Dominant font detection
+
+```python
+from src.font import FontDetector
+
+with FontDetector("document.pdf") as detector:
+    fonts = detector.get_unique_fonts()
+    dominant = detector.get_dominant_font()
+```
+
+#### Layout Mapping Module (`src/layout/`)
+
+Maps and preserves PDF layout:
+- Groups text into regions
+- Detects text alignment (left, center, right, justified)
+- Calculates line spacing
+- Finds text by content or position
+
+```python
+from src.layout import LayoutMapper
+
+mapper = LayoutMapper()
+mapper.add_text_blocks(text_blocks)
+alignment = mapper.detect_alignment(blocks, page_width)
+spacing = mapper.calculate_line_spacing(blocks)
+```
+
+#### Text Utils Module (`src/utils/`)
+
+Provides text manipulation utilities:
+- Spell checking with TextBlob
+- Custom dictionary support
+- Text insertion, replacement, and deletion
+- Spelling suggestions
+
+```python
+from src.utils import SpellChecker, TextModifier
+
+checker = SpellChecker(custom_dictionary=["customword"])
+corrected = checker.correct_text("Text with mistkes")
+
+modifier = TextModifier()
+new_text = modifier.insert_text("Hello world", " beautiful", 5)
+```
+
+#### Rendering Module (`src/rendering/`)
+
+Renders modified text back into PDFs:
+- Insert text at specific coordinates
+- Insert text in rectangular areas
+- Replace text blocks with style preservation
+- Remove or highlight text blocks
+
+```python
+from src.rendering import PDFRenderer, RenderOptions
+
+with PDFRenderer("input.pdf", "output.pdf") as renderer:
+    options = RenderOptions(font_size=14, color=(1, 0, 0))
+    renderer.insert_text(0, "New text", 100, 200, options)
+    renderer.save()
+```
+
+## Testing
+
+### Run All Tests
+
+```bash
+pytest
+```
+
+### Run Unit Tests Only
+
+```bash
+pytest -m unit
+```
+
+### Run Integration Tests Only
+
+```bash
+pytest -m integration
+```
+
+### Run with Coverage
+
+```bash
+pytest --cov=src --cov-report=html
+```
+
+### Test Structure
+
+```
+tests/
+├── unit/               # Unit tests for individual modules
+│   ├── test_extraction.py
+│   ├── test_font.py
+│   ├── test_layout.py
+│   ├── test_utils.py
+│   └── test_rendering.py
+└── integration/        # Integration tests for complete workflows
+    └── test_pdf_editor.py
+```
+
+## Examples
+
+### Example 1: Extract and Analyze PDF
+
+```python
+from src import PDFEditor
+
+editor = PDFEditor("document.pdf")
+editor.load()
+
+# Get document info
+page_count = editor.get_page_count()
+print(f"Document has {page_count} pages")
+
+# Get fonts used
+fonts = editor.get_fonts()
+for font in fonts:
+    print(f"Font: {font.name}, Size: {font.size}")
+
+# Extract and print text
+text = editor.extract_text()
+print(text)
+```
+
+### Example 2: Correct Spelling Mistakes
+
+```python
+from src import PDFEditor
+
+editor = PDFEditor("document.pdf")
+
+# Check for mistakes first
+mistakes = editor.check_spelling()
+print(f"Found {len(mistakes)} text blocks with errors")
+
+# Correct and save
+corrections = editor.correct_spelling("corrected.pdf")
+print(f"Made {corrections} corrections")
+```
+
+### Example 3: Add Watermark
+
+```python
+from src import PDFEditor
+
+editor = PDFEditor("document.pdf")
+page_count = editor.get_page_count()
+
+# Add watermark to all pages
+for page_num in range(page_count):
+    if page_num == 0:
+        output = "watermarked.pdf"
+    else:
+        output = "watermarked.pdf"
+    
+    width, height = editor.get_page_dimensions(page_num)
+    editor.insert_text(
+        output_path=output,
+        page_number=page_num,
+        text="CONFIDENTIAL",
+        x=width / 2 - 50,
+        y=height / 2,
+        font_size=48
+    )
+```
+
+### Example 4: Find and Replace
+
+```python
+from src import PDFEditor
+
+editor = PDFEditor("document.pdf")
+editor.load()
+
+# Find all occurrences
+blocks = editor.find_text("Company Name")
+print(f"Found {len(blocks)} occurrences")
+
+# Replace all occurrences
+count = editor.replace_text(
+    output_path="updated.pdf",
+    old_text="Company Name",
+    new_text="New Company Name",
+    preserve_style=True
+)
+print(f"Replaced {count} occurrences")
+```
+
+## Advanced Features
+
+### Custom Dictionaries
+
+Add custom words to the spell checker to avoid false positives:
+
+```python
+editor = PDFEditor("document.pdf", custom_dictionary=["blockchain", "API", "PDF"])
+editor.add_word_to_dictionary("customterm")
+```
+
+### Style Preservation
+
+All text modifications preserve the original styling by default:
+
+```python
+# Replaces text while keeping original font, size, and color
+editor.replace_text("output.pdf", "old", "new", preserve_style=True)
+```
+
+### Page-Specific Operations
+
+Most operations support page-specific filtering:
+
+```python
+# Check spelling on page 2 only
+mistakes = editor.check_spelling(page_number=1)  # 0-indexed
+
+# Extract text from page 3 only
+text = editor.extract_text(page_number=2)
+```
+
+## Dependencies
+
+- **PyMuPDF (fitz)**: PDF parsing and rendering
+- **TextBlob**: Spell checking and correction
+- **NLTK**: Natural language processing support
+- **reportlab**: PDF generation utilities
+- **pytest**: Testing framework
+
+## License
+
+This project aims to provide tools and utilities for extracting, manipulating, and rendering PDFs.
+
+## Contributing
+
+Contributions are welcome! Please ensure all tests pass before submitting pull requests:
+
+```bash
+pytest --cov=src
+```
+
+## Troubleshooting
+
+### TextBlob Corpus Not Found
+
+If you get an error about missing TextBlob corpora:
+
+```bash
+python -m textblob.download_corpora
+```
+
+### Font Rendering Issues
+
+If text doesn't render with the correct font, the PDF may use embedded fonts. The system will fall back to standard fonts (Helvetica, Times, Courier).
+
+### Performance with Large PDFs
+
+For very large PDFs, consider processing pages individually:
+
+```python
+for page_num in range(editor.get_page_count()):
+    blocks = editor.get_text_blocks(page_number=page_num)
+    # Process blocks...
+```

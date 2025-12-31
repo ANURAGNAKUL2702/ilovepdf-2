@@ -124,11 +124,14 @@ class SpellChecker:
         if not word.isalpha():
             return []
             
+        # Use correct() to get the main suggestion, and return it in a list
         blob = TextBlob(word)
-        suggestions = blob.spellcheck()
+        corrected = str(blob.correct())
         
-        # Return top suggestions (excluding the original word if correct)
-        return [sugg[0] for sugg in suggestions[:max_suggestions]]
+        # Return the correction as a suggestion if different from original
+        if corrected.lower() != word.lower():
+            return [corrected]
+        return []
     
     def add_to_dictionary(self, word: str):
         """
