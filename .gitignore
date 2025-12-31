@@ -1,0 +1,18 @@
+# Ignore Python cache files
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual environment folder
+venv/
+
+# Ignore IDE specific files
+.idea/
+.vscode/
+
+# Ignore test coverage and pytest cache files
+coverage_report/
+pytest_cache/
+.coverage
+dist/
+build/
