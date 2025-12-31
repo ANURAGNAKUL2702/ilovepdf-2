@@ -7,6 +7,7 @@ import RightPropertiesPanel from './RightPropertiesPanel'
 import PDFCanvas from './PDFCanvas'
 import PageNavigation from './PageNavigation'
 import { EditorMode, TextBlock, RenderOptions } from '@/types'
+import type { PropertyValue } from './RightPropertiesPanel'
 // API integration ready for backend connection
 // import { pdfAPI } from '@/lib/api'
 
@@ -153,8 +154,7 @@ export default function PDFEditor() {
 
   // Handle property change
   const handlePropertyChange = useCallback(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (property: keyof RenderOptions, value: any) => {
+    (property: keyof RenderOptions, value: PropertyValue) => {
       if (!selectedBlock) return
 
       console.log('Property changed:', property, value)

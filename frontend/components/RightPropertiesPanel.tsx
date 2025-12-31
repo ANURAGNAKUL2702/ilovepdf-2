@@ -3,10 +3,11 @@
 import { TextBlock, RenderOptions } from '@/types'
 import { useState } from 'react'
 
+export type PropertyValue = string | number | boolean | { type: string; margin: number }
+
 interface RightPropertiesPanelProps {
   selectedBlock: TextBlock | null
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onPropertyChange: (property: keyof RenderOptions, value: any) => void
+  onPropertyChange: (property: keyof RenderOptions, value: PropertyValue) => void
 }
 
 // Available font families for future enhancements

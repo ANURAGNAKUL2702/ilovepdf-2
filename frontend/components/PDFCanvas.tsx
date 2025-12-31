@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import * as pdfjsLib from 'pdfjs-dist'
+import type { PDFDocumentProxy } from 'pdfjs-dist'
 import { TextBlock } from '@/types'
 
 // Configure PDF.js worker
@@ -32,8 +33,7 @@ export default function PDFCanvas({
 }: PDFCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [pdfDoc, setPdfDoc] = useState<any>(null)
+  const [pdfDoc, setPdfDoc] = useState<PDFDocumentProxy | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [editingBlockId, setEditingBlockId] = useState<string | null>(null)
   const [editText, setEditText] = useState('')
